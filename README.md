@@ -1,4 +1,4 @@
 WaterMotion
 ===========
 
-Use leap motion to get position of hands
+Using hand motions and the Leap Motion to control water pumps. 
