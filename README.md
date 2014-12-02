@@ -15,7 +15,7 @@ Info on the Leap Motion and JS:
 https://developer.leapmotion.com/getting-started/javascript/developer-guide#getting_data
 
 Communicating between Arduino and the Leap Motion:                                                                              
-http://xseignard.github.io/2013/06/25/interfacing-leap-motion-with-arduino-thanks-to-nodejs/
-https://github.com/rwaldron/johnny-five/wiki/Getting-Started
-https://github.com/einaros/ws/blob/master/doc/ws.md
-http://howtonode.org/how-to-install-nodejs
+http://xseignard.github.io/2013/06/25/interfacing-leap-motion-with-arduino-thanks-to-nodejs/                                    
+https://github.com/rwaldron/johnny-five/wiki/Getting-Started                                                                    
+https://github.com/einaros/ws/blob/master/doc/ws.md                                                                             
+http://howtonode.org/how-to-install-nodejs                                                                                      
