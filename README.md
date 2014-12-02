@@ -1,10 +1,11 @@
 WaterMotion
 ===========
 
-Using hand motions, an Arduino, and the Leap Motion to control water pumps. 
+Using hand motions, an Arduino, and the Leap Motion to control water pumps.
 
 Useful Links
 ===========
+
 Below are some useful links that the team found useful in starting this project.
 
 Controlling the pumps:                                                                                                          
