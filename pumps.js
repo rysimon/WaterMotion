@@ -13,57 +13,34 @@ var webSocket = require('ws'),
 	five = require('johnny-five'),
 	Leap = require('leapjs'),
 	board = new five.Board(),
-	motor, frame, hand;
-var oldHandId = 0;
-var handType;
-var oldGestureId = 0;
-var speed = 5;
-var extendedFingers = 0;
+	oldHandId = 0,
+	oldGestureId = 0,
+	speed = 5,
+	extendedFingers = 0,
+	motor, frame, hand,
+	handType;
 
-//self-invoking function
 board.on('ready', function() 
 {	
+	//getting the frames from the Leap Motion
 	var controller = Leap.loop({enableGestures: true}, function(frame) 
 	{ 	
-		checkData(frame, controller);
+		checkData(frame);
 	});
 });
 
-function checkData(frame, controller)
+function checkData(frame)
 {
 	//creating a hand object
-	var hand = frame.hands[0];
-	//getting the current number of fingers present
-	var finger;
-	var newHandId;
-
-	
-	
-	////////////////////////////////////////NEW CODE//////////////////////////////////////////
-	var gesture;
-	var type;
-	var duration;
-	
-	//enabling gestures
-	///////////////////////////////////////////////////////////////////////////////////////////
-	
-	
+	var hand = frame.hands[0],
+	finger, newHandId, gesture, 
+	type, duration;
 	
 	
 	//catching undefined hand objects when no hands are present
 	if(typeof hand != "undefined")
 	{
-//		extendedFingers = 0;
 		newHandId = hand.id;
-		
-		/*for(i = 0; i < 5; i++)
-		{
-			finger = hand.fingers[i];
-			if(finger.extended) 
-			{
-				extendedFingers++;
-			}
-		}*/
 	}
 	
 	//if there is a new hand, we start the pumps in a new pattern
@@ -71,25 +48,32 @@ function checkData(frame, controller)
 	//Arduino with input and the motors won't run
 	if(newHandId != oldHandId && typeof hand != "undefined")
 	{
+		//determining whether the hand is left or right
 		type = getHandType(frame);
 		
+		//if there is a gesture and it is the right hand
 		if(frame.gestures.length > 0 && type == "right")
 		{
+			//grab the gesture object from the frame's gesture list
 			gesture = frame.gestures[0];
 			
+			//if the gesture is more than a millisecond
+			//gestures are recorded in microseconds
+			//(1 microsecond = 1x10^-6 seconds)
 			if(gesture.duration/1000 > 100)
 			{
 				getGestures(gesture, frame);
-				/*console.log("Sending:");
-				console.log(gesture);*/
 			}
 		}
 		
+		//if the hand is a left hand
 		else if(type == "left")
 		{
+			//reset and count the number of extended fingers
 			extendedFingers = 0;
 			for(i = 0; i < 5; i++)
 			{
+				//grabbing finger objects from frame's list
 				finger = hand.fingers[i];
 				if(finger.extended) 
 				{
@@ -97,28 +81,31 @@ function checkData(frame, controller)
 				}
 			}
 			
-			console.log(extendedFingers);
+			//let us know how many fingers the Leap Motion sees
+			console.log("Extended Fingers: " + extendedFingers);
+			
 			//always start the new pattern with motorA
 			runMotorA(extendedFingers);
-			console.log(extendedFingers);
-			
 			//storing the hand id of the current hand
 			oldHandId = newHandId;
 		}
 	}
 }
 
+//figure out if the hand is left or right
 function getHandType(frame)
 {
-	//getting whether the hand is a left or right hand
+	//creating a hand object
 	var hand = frame.hands[0];
 	if(typeof hand != "undefined")
 	{
+		//getting the type of hand
 		handType = hand.type;
 	}
 	return handType;
 }
 
+//get info about the gesture
 function getGestures(gesture, frame)
 {
 	var gestures = gesture;
@@ -126,36 +113,40 @@ function getGestures(gesture, frame)
 	var duration;
 	var newGestureId;
 	
-	console.log(gesture.type);
+	//tell us the gesture the Leap Motion sees
+	console.log("Gesture: " + gesture.type);
 	if(gesture.type == "swipe")
 	{
 
+		//tell us if the swipe is horizontal or not
 		var isHorizontal = Math.abs(gestures.direction[0]) > Math.abs(gestures.direction[1]);
 		newGestureId = gesture.id;
-		/*console.log("Getting:");
-		console.log(gesture);*/
 	}
 	
-	//Classify as right-left or up-down
-	if( (isHorizontal) &&(oldGestureId != newGestureId) )
+	//classify as right-left or up-down
+	if( (isHorizontal) && (oldGestureId != newGestureId) )
 	{
+		//if the swipe is to the right
 	  if(gestures.direction[0] > 0)
 	  {
+		//increase the speeds of the pumps
 		speed++;
-		console.log(speed);
+		//tell us the current speed
+		console.log("Speed: " + speed);
 	  } 
+	  //if the swipe is to the left
 	  else 
 	  {
+		//decrease the speed
 		if(speed > 1) speed--;
-		console.log(speed);
+		//tell us the speed
+		console.log("Speed " + speed);
 	  }
 	  oldGestureId = newGestureId;
 	}
 }
 /*********************************************************************
 Methods that control the pumps and the patterns they run in.
-This is messier than I would like it to be. The team needs to 
-look into ways that we can simplify these processes.
 
 The current pattern being run is:
 1 finger: A, B, C, D, E, back to start
@@ -165,10 +156,6 @@ The current pattern being run is:
 **********************************************************************/
 function runMotorA(num)
 {
-	//how can we make these global so that we don't
-	//have to create new objects every time we call a method?
-	//when I made them global, javascript kept throwing
-	//a TypeError. It was saying the objects were of type null
 	var number = num;
 	var runSpeed = speed * 1000;
 	var motorA = new five.Motor([3, 0, 2]);
