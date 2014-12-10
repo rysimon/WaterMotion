@@ -1,15 +1,24 @@
-/****************************************************
-Matthew Bell
-This program connects a Leap Motion and Arduino over
-a web server. Based on the number of fingers that the
-Leap Motion senses, the same number of pumps attached 
-to the Arduino turn on and off in a pattern.
-****************************************************/
+/**
+*@author Matthew Bell
+*This program connects a Leap Motion and Arduino over
+*a web server. Based on the number of fingers that the
+*Leap Motion senses, the same number of pumps attached 
+*to the Arduino turn on and off in a pattern.
+**/
+
+//getting the Leap Motion and johnny-five libraries
 var Leap = require('leapjs'),
 	five = require('johnny-five');
 	
-//JavaScript does not have overloading, so we are forced 
+//JavaScript does not allow overloading, so we are forced 
 //to work with a single constructor
+/**
+*Leap Motion Class parses the frames from the Leap Motion
+*@Constructor 
+*@param {int} oldHandId - the id of the old hand
+*@param {int} newHandId - the id of the new hand 
+**/
+
 var LeapMotion = function(oldHandId, newHandId)
 {
 	//not all parameters must be defined when creating an 
@@ -21,32 +30,50 @@ var LeapMotion = function(oldHandId, newHandId)
 	else this.newHandId = newHandId;
 };
 
-//getters and setters
+/**
+*@function setOldHandId - set the old hand id
+*@param {int} oldHandId - the id to set
+**/
 LeapMotion.prototype.setOldHandId = function(oldHandId)
 {
 	this.oldHandId = oldHandId;
 };
-
+/**
+*@function setNewHandId - set the new hand id
+*@param {int} newHandId - the id to set
+**/
 LeapMotion.prototype.setNewHandId = function(newHandId)
 {
 	this.newHandId = newHandId;
 };
-
+/**
+*@function setExtendedFingers - set the number of extended fingers
+*@param {int} extendedFingers - the number fingers to set
+**/
 LeapMotion.prototype.setExtendedFingers = function(extendedFingers)
 {
 	this.extendedFingers = extendedFingers;
 };
-
+/**
+*@function getOldHandId - get the old hand id
+*@returns {int} oldHandId - the id of old hand
+**/
 LeapMotion.prototype.getOldHandId = function()
 {
 	return this.oldHandId;
 };
-
+/**
+*@function getNewHandId - get the new hand id
+*@returns {int} newHandId - the id of the new hand
+**/
 LeapMotion.prototype.getNewHandId = function()
 {
 	return this.newHandId;
 };
-
+/**
+*@function checkData - parses the frames from the Leap Motion
+*@param frame - the frame from the Leap Motion
+**/
 LeapMotion.prototype.checkData = function(frame)
 {
 	//creating a hand object
@@ -120,10 +147,15 @@ LeapMotion.prototype.checkData = function(frame)
 	}
 };
 
-	//figure out if the hand is left or right
+/**
+*@function getHandType - finds out if the hand is left or right
+*@param frame - the frame from the Leap Motion
+*@returns left or right
+**/
 LeapMotion.prototype.getHandType = function(frame)
 {
 	//creating a hand object
+	//hand is-a frame
 	var hand = frame.hands[0],
 		handType;
 	
@@ -135,7 +167,11 @@ LeapMotion.prototype.getHandType = function(frame)
 	return handType;
 };
 
-	//get info about the gesture
+/**
+*@function getGestures - determine if the gesture is left or right swipe
+*@param gesture - the gesture occurring 
+*@param frame - the frame from the Leap Motion
+**/
 LeapMotion.prototype.getGestures = function(gesture, frame)
 {
 	var gestures = gesture,
@@ -152,7 +188,7 @@ LeapMotion.prototype.getGestures = function(gesture, frame)
 	//classify as right-left or up-down
 	if(isHorizontal)
 	{
-		//if the swipe is to the right
+		//if the swipe is to the right decrease speed
 	  if(gestures.direction[0] > 0)
 	  {
 		//increase the speeds of the pumps
@@ -170,7 +206,23 @@ LeapMotion.prototype.getGestures = function(gesture, frame)
 	  }
 	}
 };
-
+/**
+*@function toString
+*@returns old hand and new hand ids
+**/
+LeapMotion.prototype.toString = function()
+{
+	return "\nOld hand Id: " + this.oldHandId + "\n New hand id: " + this.newHandId;
+};
+	
+/**
+*Motor Class sends commands to the Arduino
+*@Constructor 
+*@param {int} oldHandId - the id of the old hand
+*@param {int} newHandId - the id of the new hand 
+*@param {int} extendedFingers - the fingers extended
+*@param {int} speed - the speed of the pumps
+**/
 var Motor = function(oldHandId, newHandId, extendedFingers, speed)
 {
 	if(typeof oldHandId == "undefined") this.oldHandId = 0;
@@ -183,55 +235,88 @@ var Motor = function(oldHandId, newHandId, extendedFingers, speed)
 	else this.speed = speed;
 };
 
-//getters and setters
+/**
+*@function setOldHandId - set the old hand id
+*@param {int} oldHandId - the id to set
+**/
 Motor.prototype.setOldHandId = function(oldHandId)
 {
 	this.oldHandId = oldHandId;
 };
 
+/**
+*@function setNewHandId - set the new hand id
+*@param {int} newHandId - the id to set
+**/
 Motor.prototype.setNewHandId = function(newHandId)
 {
 	this.newHandId = newHandId;
 };
 
+/**
+*@function setSpeed - set the speed 
+*@param {int} speed - the speed to set
+**/
 Motor.prototype.setSpeed = function(speed)
 {
 	this.speed = speed;
 };
 
+/**
+*@function setExtendedFingers - set the fingers extended
+*@param {int} extendedFingers - the fingers extended
+**/
 Motor.prototype.setExtendedFingers = function(extendedFingers)
 {
 	this.extendedFingers = extendedFingers;
 };
 
+/**
+*@function getOldHandId - get old hand id 
+*@returns {int} the old hand id
+**/
 Motor.prototype.getOldHandId = function()
 {
 	return this.oldHandId;
 };
 
+/**
+*@function getNewHandId - get new hand id 
+*@returns {int} the old new id
+**/
 Motor.prototype.getNewHandId = function()
 {
 	return this.newHandId;
 };
 
+/**
+*@function getSpeed - get the speed of pumps 
+*@returns {int} the speed
+**/
 Motor.prototype.getSpeed = function()
 {
 	return this.speed;
 };
 
+/**
+*@function getExtendedFingers - get fingers extended
+*@returns {int} the number of extended fingers
+**/
 Motor.prototype.getExtendedFingers = function()
 {
 	return this.extendedFingers;
 };
-/*********************************************************************
-	Methods that control the pumps and the patterns they run in.
 
-	The current pattern being run is:
-	1 finger: A, B, C, D, E, back to start
-	2 fingers: A&B, B&C, C&D, D&E, E&A, back to start
-	3 fingers: A&B&C, B&C&D, C&D&E, D&E&A, E&A&B, back to start
-	4 fingers: A&B&C&D, B&C&D&E, C&D&E&A, D&E&A&B, E&A&B&C, back to start
-**********************************************************************/
+/**
+*@function runMotorA - controls the pumps and the patterns they run in.
+*
+*	The current pattern being run is:
+*	1 finger: A, B, C, D, E, back to start
+*	2 fingers: A&B, B&C, C&D, D&E, E&A, back to start
+*	3 fingers: A&B&C, B&C&D, C&D&E, D&E&A, E&A&B, back to start
+*	4 fingers: A&B&C&D, B&C&D&E, C&D&E&A, D&E&A&B, E&A&B&C, back to start
+*@param {int} counter - the number of times the pumps have run
+**/
 Motor.prototype.runMotorA = function(counter)
 {
 	var count = counter,
@@ -253,7 +338,6 @@ Motor.prototype.runMotorA = function(counter)
 			//if we are going above the last index of the array we reset
 			if(i > 4) number = i - 5;
 			else number = i;
-			console.log("1Running: " + number);
 			//had to use motor variable
 			//if we tried to use the array to start the motor, it would
 			//through a type error
@@ -262,39 +346,49 @@ Motor.prototype.runMotorA = function(counter)
 		}
 		board.wait(runSpeed, function()
 		{
-			//if there is no new hand present
-			//we need these checking occasionally because 
-			//these pumps are waiting for a period and then 
-			//running a new function. This causes issues when 
-			//we place new hands in view of the Leap Motion as the 
-			//new function will run and stick to the old pattern when 
-			//a new pattern is also going due to the old pattern.
-			//this eliminates the old pattern from continuing when a new
-			//pattern begins
+			/*if there is no new hand present
+			*we need these checking occasionally because 
+			*these pumps are waiting for a period and then 
+			*running a new function. This causes issues when 
+			*we place new hands in view of the Leap Motion as the 
+			*new function will run and stick to the old pattern when 
+			*a new pattern is also going due to the old pattern.
+			*this eliminates the old pattern from continuing when a new
+			*pattern begins*/
 			if(id == (motorObj.getNewHandId() + 1))
 			{
 				for(var j = count; j < (motorObj.getExtendedFingers() + count); j++)
 				{
 					if(j > 4) number = j - 5;
 					else number = j;
-					console.log("1Stopping: " + number);
 					motor = motorArray[number];
 					motor.stop();
 				}
 				count++;
 				if(count > 4) count = 0;
-				//keeps the motors running.
-				//this is basically an artificial while loop.
-				//using a while loop is impossible with this program 
-				//because as soon as we enter a while loop, we lose contact
-				//with the Leap Motion controller. So we have to create our 
-				//own while loop using two separate methods. This allows us
-				//to constantly get info from the Leap Motion controller.
+				/*keeps the motors running.
+				*this is basically an artificial while loop.
+				*using a while loop is impossible with this program 
+				*because as soon as we enter a while loop, we lose contact
+				*with the Leap Motion controller. So we have to create our 
+				*own while loop using two separate methods. This allows us
+				*to constantly get info from the Leap Motion controller.*/
 				motorObj.runMotorB(count);
 			}	
 		});
 	}
 };
+
+/**
+*@function runMotorB - controls the pumps and the patterns they run in.
+*
+*	The current pattern being run is:
+*	1 finger: A, B, C, D, E, back to start
+*	2 fingers: A&B, B&C, C&D, D&E, E&A, back to start
+*	3 fingers: A&B&C, B&C&D, C&D&E, D&E&A, E&A&B, back to start
+*	4 fingers: A&B&C&D, B&C&D&E, C&D&E&A, D&E&A&B, E&A&B&C, back to start
+*@param {int} counter - the number of times the pumps have run
+**/
 //both runMotorA and runMotorB work in the same fashion
 Motor.prototype.runMotorB = function(counter)
 {
@@ -312,7 +406,6 @@ Motor.prototype.runMotorB = function(counter)
 		{
 			if(i > 4) number = i - 5;
 			else number = i;
-			console.log("2Running: " + number);
 			motor = motorArray[number];
 			motor.start(255);
 		}
@@ -324,7 +417,6 @@ Motor.prototype.runMotorB = function(counter)
 				{
 					if(j > 4) number = j - 5;
 					else number = j;
-					console.log("2Stopping: " + number);
 					motor = motorArray[number];
 					motor.stop();
 				}
@@ -337,17 +429,28 @@ Motor.prototype.runMotorB = function(counter)
 	}
 };
 
+/**
+*@function toString - returns a string
+*@returns the old hand id, new hand id, number of fingers extended, and speed of pumps
+**/
+Motor.prototype.toString = function()
+{
+	return "\nOld hand Id: " + this.oldHandId + "\n New hand id: " + this.newHandId
+			+ "\n Extended fingers: " + this.extendedFingers + "\n Speed: " + this.speed;
+};
+
 //creating LeapMotion, Motor, and Board objects
 var leapObj = new LeapMotion(),
 	motorObj = new Motor(),
+	//Board is a child of johnny-five
 	board = new five.Board();
 	
 //starting the program
 board.on('ready', function() 
 {	
-//getting the frames from the Leap Motion
+//getting the frames from the Leap Motion through a websocket 
 	var controller = Leap.loop({enableGestures: true}, function(frame) 
 	{ 	
 		leapObj.checkData(frame);
 	});
-});
+});	
